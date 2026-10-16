@@ -7,5 +7,6 @@ interface NoteRepository {
     fun observeNotes(): Flow<List<Note>>
     suspend fun getNote(id: Long): Note?
     suspend fun saveNote(note: Note)
+    suspend fun toggleNoteCompletion(note: Note)
     suspend fun deleteNote(note: Note)
 }

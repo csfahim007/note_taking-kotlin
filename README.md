@@ -17,17 +17,20 @@ Visit the release page and download the attached APK or ZIP containing the APK. 
 
 ## 📱 Overview
 
-**Notes** is a native Android note-taking application built with Kotlin and Jetpack Compose. It provides a simple way to create, organize, search, edit, and delete notes, with local storage for offline access.
+**Notes** is a native Android note-taking and to-do application built with Kotlin and Jetpack Compose. It provides a simple way to create, organize, search, edit, and delete notes and checklists, with local storage for offline access.
 
 The project demonstrates modern Android development practices, reactive UI state management, persistent local storage, and a maintainable application architecture.
 
 ## ✨ Features
 
-- **📝 Create Notes:** Write and save notes directly on your device.
-- **✏️ Edit Notes:** Update existing notes whenever needed.
-- **🗑️ Delete Notes:** Remove notes you no longer need.
+- **📝 Create Notes & To-Dos:** Write notes or create interactive task checklists.
+- **☑️ Interactive Checklists:** Add, check off, edit, or remove task items dynamically in To-Do mode.
+- **🏷️ Category Filtering:** Easily filter your list by **All**, **Notes**, or **To-Dos**.
+- **✔️ Quick Task Completion:** Mark notes or to-dos as completed directly from the list view.
+- **✏️ Edit Notes & Tasks:** Update existing notes or checklist items whenever needed.
+- **🗑️ Delete Notes:** Remove notes or task lists you no longer need.
 - **↩️ Undo Deletion:** Restore a recently deleted note using the undo action.
-- **🔍 Search Notes:** Find notes by title or content.
+- **🔍 Search:** Find notes and tasks by title or content.
 - **📴 Offline Storage:** Store notes locally using the Room persistence library.
 - **⚡ Reactive Updates:** Automatically reflect database changes in the UI using Kotlin Flow.
 - **🎨 Modern UI:** Native Android interface built with Jetpack Compose and Material Design 3.
@@ -108,7 +111,7 @@ Alternatively, use **Build → Build APK(s)** in Android Studio.
 
 ## 💾 Data Storage
 
-Notes are stored locally using Room, allowing users to access saved notes without relying on a remote backend. Room queries and Kotlin Flow support reactive updates when the underlying data changes.
+Notes and to-dos are stored locally using Room, allowing users to access saved notes without relying on a remote backend. Room queries and Kotlin Flow support reactive updates when the underlying data changes.
 
 ## 👨‍💻 Developer
 

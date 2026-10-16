@@ -4,6 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.notes.data.repository.NoteRepository
@@ -19,11 +20,16 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+enum class NoteFilter {
+    ALL, NOTES, TODOS
+}
+
 data class NoteListUiState(
     val notes: List<Note> = emptyList(),
     val isLoading: Boolean = true,
     /** True when the database has notes, even if the current search hides them all. */
-    val hasAnyNotes: Boolean = false
+    val hasAnyNotes: Boolean = false,
+    val selectedFilter: NoteFilter = NoteFilter.ALL
 )
 
 @HiltViewModel
@@ -35,20 +41,35 @@ class NoteListViewModel @Inject constructor(
     var query by mutableStateOf("")
         private set
 
+    var filter by mutableStateOf(NoteFilter.ALL)
+        private set
+
     val uiState: StateFlow<NoteListUiState> = combine(
         repository.observeNotes(),
-        snapshotFlow { query }
-    ) { notes, searchText ->
+        snapshotFlow { query },
+        snapshotFlow { filter }
+    ) { notes, searchText, currentFilter ->
         val trimmed = searchText.trim()
+        val filteredByType = when (currentFilter) {
+            NoteFilter.ALL -> notes
+            NoteFilter.NOTES -> notes.filter { !it.isTodo }
+            NoteFilter.TODOS -> notes.filter { it.isTodo }
+        }
+
         val visible = if (trimmed.isEmpty()) {
-            notes
+            filteredByType
         } else {
-            notes.filter {
+            filteredByType.filter {
                 it.title.contains(trimmed, ignoreCase = true) ||
                     it.content.contains(trimmed, ignoreCase = true)
             }
         }
-        NoteListUiState(notes = visible, isLoading = false, hasAnyNotes = notes.isNotEmpty())
+        NoteListUiState(
+            notes = visible,
+            isLoading = false,
+            hasAnyNotes = notes.isNotEmpty(),
+            selectedFilter = currentFilter
+        )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5_000),
@@ -62,7 +83,18 @@ class NoteListViewModel @Inject constructor(
 
     fun onQueryChange(newQuery: String) {
         query = newQuery
-        androidx.compose.runtime.snapshots.Snapshot.sendApplyNotifications()
+        Snapshot.sendApplyNotifications()
+    }
+
+    fun onFilterChange(newFilter: NoteFilter) {
+        filter = newFilter
+        Snapshot.sendApplyNotifications()
+    }
+
+    fun toggleCompletion(note: Note) {
+        viewModelScope.launch {
+            repository.toggleNoteCompletion(note)
+        }
     }
 
     fun deleteNote(note: Note) {

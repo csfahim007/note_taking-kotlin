@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -44,6 +45,8 @@ class NoteEditViewModelTest {
         assertTrue(viewModel.isNewNote)
         assertEquals("", viewModel.title)
         assertEquals("", viewModel.content)
+        assertFalse(viewModel.isTodo)
+        assertFalse(viewModel.isCompleted)
         assertNull(viewModel.lastEdited)
     }
 
@@ -62,6 +65,26 @@ class NoteEditViewModelTest {
         val savedNotes = repository.getNote(1L)
         assertEquals("New Title", savedNotes?.title)
         assertEquals("New Content", savedNotes?.content)
+    }
+
+    @Test
+    fun saveNewTodoItemSavesChecklist() = runTest {
+        val savedStateHandle = SavedStateHandle(mapOf(NOTE_ID_ARG to NEW_NOTE_ID))
+        val viewModel = NoteEditViewModel(savedStateHandle, repository)
+
+        viewModel.onTitleChange("Groceries")
+        viewModel.toggleIsTodo()
+        viewModel.addTaskItem("Buy Milk")
+        viewModel.addTaskItem("Buy Eggs")
+
+        viewModel.saveAndClose()
+        viewModel.closeEvents.first()
+
+        val saved = repository.getNote(1L)
+        assertEquals("Groceries", saved?.title)
+        assertTrue(saved?.isTodo == true)
+        assertTrue(saved?.content?.contains("Buy Milk") == true)
+        assertTrue(saved?.content?.contains("Buy Eggs") == true)
     }
 
     @Test

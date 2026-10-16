@@ -10,7 +10,9 @@ class FakeNoteDao : NoteDao {
     private val notesFlow = MutableStateFlow<List<NoteEntity>>(emptyList())
 
     override fun observeAll(): Flow<List<NoteEntity>> {
-        return notesFlow.map { list -> list.sortedByDescending { it.updatedAt } }
+        return notesFlow.map { list ->
+            list.sortedWith(compareBy<NoteEntity> { it.isCompleted }.thenByDescending { it.updatedAt })
+        }
     }
 
     override suspend fun getById(id: Long): NoteEntity? {
@@ -27,6 +29,15 @@ class FakeNoteDao : NoteDao {
             current.add(note.copy(id = nextId))
         }
         notesFlow.value = current
+    }
+
+    override suspend fun updateCompletionStatus(id: Long, isCompleted: Boolean, updatedAt: Long) {
+        val current = notesFlow.value.toMutableList()
+        val index = current.indexOfFirst { it.id == id }
+        if (index >= 0) {
+            current[index] = current[index].copy(isCompleted = isCompleted, updatedAt = updatedAt)
+            notesFlow.value = current
+        }
     }
 
     override suspend fun deleteById(id: Long) {

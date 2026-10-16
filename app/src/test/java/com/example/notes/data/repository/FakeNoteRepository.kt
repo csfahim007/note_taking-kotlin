@@ -9,7 +9,9 @@ class FakeNoteRepository : NoteRepository {
     private val notesFlow = MutableStateFlow<List<Note>>(emptyList())
 
     override fun observeNotes(): Flow<List<Note>> {
-        return notesFlow.map { list -> list.sortedByDescending { it.updatedAt } }
+        return notesFlow.map { list ->
+            list.sortedWith(compareBy<Note> { it.isCompleted }.thenByDescending { it.updatedAt })
+        }
     }
 
     override suspend fun getNote(id: Long): Note? {
@@ -26,6 +28,18 @@ class FakeNoteRepository : NoteRepository {
             current.add(note.copy(id = nextId))
         }
         notesFlow.value = current
+    }
+
+    override suspend fun toggleNoteCompletion(note: Note) {
+        val current = notesFlow.value.toMutableList()
+        val index = current.indexOfFirst { it.id == note.id }
+        if (index >= 0) {
+            current[index] = current[index].copy(
+                isCompleted = !current[index].isCompleted,
+                updatedAt = System.currentTimeMillis()
+            )
+            notesFlow.value = current
+        }
     }
 
     override suspend fun deleteNote(note: Note) {

@@ -19,5 +19,10 @@ class NoteRepositoryImpl @Inject constructor(
 
     override suspend fun saveNote(note: Note) = dao.upsert(note.toEntity())
 
+    override suspend fun toggleNoteCompletion(note: Note) {
+        val newStatus = !note.isCompleted
+        dao.updateCompletionStatus(note.id, newStatus, System.currentTimeMillis())
+    }
+
     override suspend fun deleteNote(note: Note) = dao.deleteById(note.id)
 }

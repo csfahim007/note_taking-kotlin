@@ -69,6 +69,33 @@ class NoteListViewModelTest {
     }
 
     @Test
+    fun filteringByNoteFilterType() = runTest {
+        repository.saveNote(Note(id = 1L, title = "Note 1", content = "Content", isTodo = false, createdAt = 100L, updatedAt = 100L))
+        repository.saveNote(Note(id = 2L, title = "To-Do 1", content = "[ ] Task", isTodo = true, createdAt = 200L, updatedAt = 200L))
+
+        viewModel = NoteListViewModel(repository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.collect {}
+        }
+
+        viewModel.onFilterChange(NoteFilter.TODOS)
+        Snapshot.sendApplyNotifications()
+        testScheduler.advanceUntilIdle()
+
+        val todosState = viewModel.uiState.value
+        assertEquals(1, todosState.notes.size)
+        assertEquals("To-Do 1", todosState.notes[0].title)
+
+        viewModel.onFilterChange(NoteFilter.NOTES)
+        Snapshot.sendApplyNotifications()
+        testScheduler.advanceUntilIdle()
+
+        val notesState = viewModel.uiState.value
+        assertEquals(1, notesState.notes.size)
+        assertEquals("Note 1", notesState.notes[0].title)
+    }
+
+    @Test
     fun deleteAndUndoDeleteNote() = runTest {
         val note = Note(id = 1L, title = "Delete Me", content = "Content", createdAt = 100L, updatedAt = 100L)
         repository.saveNote(note)

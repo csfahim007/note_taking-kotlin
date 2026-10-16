@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -27,6 +28,16 @@ class NoteRepositoryTest {
         val retrieved = repository.getNote(1L)
         assertEquals("Test Title", retrieved?.title)
         assertEquals("Test Content", retrieved?.content)
+    }
+
+    @Test
+    fun toggleNoteCompletionTogglesStatus() = runTest {
+        val note = Note(id = 1L, title = "Task", content = "Do something", isCompleted = false, createdAt = 100L, updatedAt = 100L)
+        repository.saveNote(note)
+
+        repository.toggleNoteCompletion(note)
+        val updated = repository.getNote(1L)
+        assertTrue(updated?.isCompleted == true)
     }
 
     @Test
